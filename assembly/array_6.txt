@@ -1,0 +1,23 @@
+.pos 0x2000
+array:
+    .quad 13
+    .quad -3
+    .quad 25
+    .quad -20
+.quad 500
+arraySize:
+    .quad 5
+
+.pos 0x2500
+resultStart:
+    .quad 0
+resultEnd:
+    .quad 0
+resultSum:
+    .quad 0
+
+.pos 0x2600
+reference:
+     .quad 0x2020
+     .quad 0x2020
+     .quad 0x1F4

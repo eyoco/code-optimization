@@ -1,0 +1,7 @@
+                    , SEQ, PIPE-S, PIPE-F, PIPE-FBP
+cycles               ,3499,9183,4530,4060
+instructions         ,3499,3499,3499,3499
+cycles: reorder      ,3207,7375,4142,3768
+instructions: reorder,3207,3207,3207,3207
+cycles: optimal      ,2861,5797,3632,3340
+instructions: optimal,2861,2861,2861,2861

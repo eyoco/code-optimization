@@ -1,0 +1,166 @@
+.pos 0x100
+main:
+    irmovq $stackEnd, %rsp	# rsp = $stackEnd
+    irmovq $array, %rdi	# rdi = $array
+    irmovq $arraySize, %rsi	# rsi = $arraySize(size)
+    mrmovq (%rsi), %rsi	# rsi = m[rsi] = m[$arraySize(size]
+    irmovq $resultStart, %rdx	# rdx = $resultStart(sa_start)
+    irmovq $resultEnd, %rcx	# rcx = $resultEnd(sa_end)
+    call   maxSubArray	# to maxSubArray
+    irmovq $resultSum, %r8	# r8 = $resultSum
+    rmmovq %rax, (%r8)	# m[r8] = m[resultSum] = return value of maxSubArray
+    halt
+
+.pos 0x1000
+maxSubArray:
+    #pushq  %rbx	# 
+    irmovq $1, %r9	# 
+    #pushq  %rbp	# 
+    pushq  %r12	# 
+    pushq  %r13	# 
+    subq   %rsi, %r9 # 
+    pushq  %r14 # 
+    #irmovq $1, %r9	#  
+    #subq   %rsi, %r9 # 
+    jne    L1	# if(size !== 1) goto L1
+    rmmovq %rdi, (%rcx)	# *sa_end = array
+    rmmovq %rdi, (%rdx)	# *sa_start = array
+    mrmovq (%rdi), %r13	# return *array
+    jmp    L9	# goto L9
+L1:
+    pushq  %rbx	# 
+    pushq  %rbp	# 
+	rrmovq %rsi, %rbx #
+	irmovq $8, %r8 # 
+	irmovq $2, %r10	# 
+	rrmovq %rsi, %r9	# 
+	#irmovq $2, %r10	# 
+	irmovq $8, %rbp	# 
+	mulq   %r8, %r9	#
+	divq   %r10, %rbx	# long half = size >> 1
+	xorq   %rax, %rax	#
+	addq   %rdi, %r9	# 
+	mulq   %rbx, %rbp	# 
+	irmovq $0x8000000000000000, %r10	#
+	subq   %r8, %r9	# *end = array + size - 1
+	addq   %rdi, %rbp	# *mid = array + half
+	rrmovq %rbp, %r11	#
+	subq   %r8, %r11 # ptr = mid �C 1
+
+L2:
+	mrmovq (%r11), %r12	#  
+    addq   %r12, %rax	# sum += *ptr
+    rrmovq %rax, %r12	# 
+    subq   %r10, %r12	# 
+    jle    L3	# sum > leftsum, if sum <= leftsum goto L3
+    rrmovq %rax, %r10	# leftsum = sum  
+    rmmovq %r11, (%rdx)	# *sa_start = ptr
+L3:
+    subq   %r8, %r11	#  ptr--
+    rrmovq %r11, %r12	# 
+	subq   %rdi, %r12	# 
+    jl     L4 # ptr >= array, if ptr < array goto L4
+    jmp    L2	# goto L2
+L4:
+    irmovq $0x8000000000000000, %r13	# sum = 0
+    rrmovq %rbp, %r11	# ptr = mid
+    xorq   %rax, %rax	# 
+L5:
+
+    mrmovq (%r11), %r12	# 
+    addq   %r12, %rax	# sum += *ptr
+    rrmovq %rax, %r12	# 
+    subq   %r13, %r12	# 
+    jle    L6	#sum > rightsum, if sum <= rightsum goto L6
+    rrmovq %rax, %r13 # rightsum = sum
+    rmmovq %r11, (%rcx)	# *sa_end = ptr
+L6:
+    addq   %r8, %r11	# ptr++
+	rrmovq %r11, %r12	# 
+    subq   %r9, %r12	# 
+    jg     L7	# ptr <= end, if ptr > end goto L7
+    jmp    L5 # goto L5
+L7:
+	rrmovq %rsi, %r9	# 
+	rrmovq %rdx, %r12	# sub_start
+    addq   %r10, %r13	# bestsum = leftsum + rightsum
+    rrmovq %rcx, %r14	# sub_end
+	subq   %rbx, %r9	#
+	pushq  %rdx	# put rdx on stack
+	rrmovq %rbx, %rsi	#
+	pushq  %rcx	# put rcx on stack
+	rrmovq %r9, %rbx	#
+	rrmovq %rsp, %rdx	# rdx = rsp = $stackEnd
+	rrmovq %rsp, %rcx	# rcx = rsp = $stackEnd
+	call   maxSubArray	# call maxSubArray, maxsa(array, half, &sub_start, &sub_end)
+	rrmovq %rax, %r9	# r9 = return value of maxSubArray, sum
+	popq   %rcx	# put rcx off stack
+	subq   %r13, %r9	# 
+    popq   %rdx	# put rdx off stack
+	#subq   %r13, %r9	# 
+    jle    L8	# sum > bestsum, if sum <= bestsum goto L8
+    rrmovq %rax, %r13	# bestsum = sum
+    rmmovq %rdx, (%r12)	# *sa_start = sub_start
+    rmmovq %rcx, (%r14)	# *sa_end = sub_end
+L8:
+    pushq  %rdx	# put rdx on the stack, sub_start
+    rrmovq %rbx, %rsi # half
+    rrmovq %rsp, %rdx	# rdx = rsp = $stackEnd
+    pushq  %rcx	# put rcx on the stack, sub_end
+    rrmovq %rbp, %rdi	# rdi = rbp = $array, array = mid
+    rrmovq %rsp, %rcx	
+    call   maxSubArray	
+    popq   %rcx
+    rrmovq %rax, %r9	# sum
+    popq   %rdx	
+    subq   %r13, %r9	# 
+    popq    %rbp
+    popq    %rbx
+    jle    L9	# sum > bestsum, if sum <= bestsum goto L9 
+    rrmovq %rax, %r13	# bestsum = sum
+    rmmovq %rdx, (%r12)	# *sa_start = sub_start
+    rmmovq %rcx, (%r14) # *sa_end = sub_end
+L9:
+	popq   %r14	# put r14 off stack
+    rrmovq %r13, %rax	# return bestsum
+    popq   %r13	# put r13 off stack
+    popq   %r12	# put r12 off stack
+    #popq   %rbp	# put rbp off stack
+    #popq   %rbx	# put rbx off stack
+    ret
+    
+    
+.pos 0x2000
+array:
+    .quad 13
+    .quad -3
+    .quad -25
+    .quad -20
+    .quad -3
+    .quad -16
+    .quad -23
+    .quad 18
+    .quad 20
+    .quad -7
+    .quad 12
+    .quad -5
+    .quad -22
+    .quad 15
+    .quad -4
+    .quad 7
+arraySize:
+    .quad 16
+
+.pos 0x2500
+resultStart:
+    .quad 0
+resultEnd:
+    .quad 0
+resultSum:
+    .quad 0
+
+.pos 0x4000
+stack:
+    .quad 0, 1000
+stackEnd:
+    .quad 0		
